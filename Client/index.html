@@ -1,32 +1,180 @@
-<canvas id="ctx" width="1000" height="750" style="border:1px solid #000000;"></canvas>
-<canvas id="scoreboard" width="200" height="200" style="border:0px solid #000000;"></canvas>
+<title> Kingdom Defense </title>
+
+<canvas id="ctx" ondrop="drop(event)" ondragover="allowDrop(event)" width="1000" height="750" style="border:1px solid #000000;"></canvas>
+<canvas id="scoreboard" width="450" height="350" style="border:0px solid #000000;"></canvas>
 <script src ="http://cdn.socket.io/socket.io-1.4.5.js"></script>
-<link rel="stylesheet" href="app.css" type="text/css"   />
+<script src="https://cdn.jsdelivr.net/npm/interactjs@1.3.4/dist/interact.min.js"></script>
+<link rel="stylesheet" href="towerdefense.css" type="text/css"/>
+<style>
+	body {
+		background-color: #b3ecff;
+	}
+
+	.button {
+	  display: block;
+	  left: 1100px;
+	  top: 100px;
+	  position: absolute;
+	  padding: 15px 25px;
+	  font-size: 24px;
+	  cursor: pointer;
+	  text-align: center;
+	  text-decoration: none;
+	  outline: none;
+	  color: #fff;
+	  background-color: #4CAF50;
+	  border: none;
+	  border-radius: 15px;
+	  box-shadow: 0 9px #999;
+	}
+	
+	.button:hover {background-color: #3e8e41}
+	
+	.button:active {
+	  background-color: #3e8e41;
+	  box-shadow: 0 5px #666;
+	  transform: translateY(4px);
+	}
+	
+	#Progress_Status { 
+	  width: 50%; 
+	  background-color: #ddd; 
+	} 
+	
+	#myprogressBar { 
+	  width: 2%; 
+	  height: 20px; 
+	  background-color: #4CAF50; 
+	} 
+	
+	#outer-dropzone {
+		height: 140px;
+		touch-action: none;
+	}
+
+	#inner-dropzone {
+	  height: 80px;
+	}
+
+	.dropzone {
+	  background-color: #ccc;
+	  border: dashed 4px transparent;
+	  border-radius: 4px;
+	  margin: 10px auto 30px;
+	  padding: 10px;
+	  width: 80%;
+	  transition: background-color 0.3s;
+	}
+
+	.drop-active {
+	  border-color: #aaa;
+	}
+
+	.drop-target {
+	  background-color: #29e;
+	  border-color: #fff;
+	  border-style: solid;
+	}
+
+	.drag-drop {
+	  display: inline-block;
+	  min-width: 40px;
+	  padding: 2em 0.5em;
+
+	  color: #fff;
+	  background-color: #29e;
+	  border: solid 2px #fff;
+
+	  -webkit-transform: translate(0px, 0px);
+			  transform: translate(0px, 0px);
+
+	  transition: background-color 0.3s;
+	}
+
+	.drag-drop.can-drop {
+	  color: #000;
+	  background-color: #4e4;
+	}
+	</style>
+
 <script>
 	var ctx = document.getElementById("ctx").getContext("2d");
 	var scoreboard = document.getElementById("scoreboard").getContext("2d");
 	var socket = io();
 	var minionImage = new Image();
+	var superMinionImage = new Image();
 	var backgroundImage = new Image();
 	var bulletImage = new Image();
 	var turretImage = new Image();
-	minionImage.src = 	'https://lh5.googleusercontent.com/OJDpeuxkJh-6vCXtPzSJYoc-bxhZmlKsb5c8rrjrx-uaCgD9xzMvPB7xfcIs9cGaN3I-YOmTvdZZJGVx0gJnQGsskkig3coWIbOaJbtH';
+	var allowPlay = false;
+	
+	minionImage.src = 'https://i.imgur.com/Np3rsoZ.png';
+	superMinionImage.src = 'https://i.imgur.com/G64t1iJ.png';
 	backgroundImage.src = 'https://i.stack.imgur.com/BFjwi.png';
-	bulletImage.src = 'https://vignette.wikia.nocookie.net/vgc/images/5/5d/360280-nsmb_bullet_bill.jpg/revision/latest?cb=20140801063102';
-	turretImage.src = 'https://lh6.googleusercontent.com/NKobNDUfmbkX3KY7svPGukd8irWGzHM21E8iZlyVP7DMnoGZZ2Fc_EzctCk-ArGEWe7gLD0ua5KTJrgKtzS9E0p7TRiYIRe37K5P9gFt';
+	bulletImage.src = 'https://i.imgur.com/zbSMMDc.png';
+	turretImage.src = "https://imgur.com/d5X6aed.jpg";
 	ctx.font = '30px Arial';
 	ctx.drawImage(backgroundImage, 0, 0, 1000, 750);
 	scoreboard.font = '20px Georgia';
 	
+	socket.on('waiting on player', function(){
+		//alert("waiting for other player");
+		console.log("Waiting for new player");
+		
+		//Creates background rectangle
+		
+		//ctx.clearRect(0,0,1000,750);
+		var my_gradient=ctx.createLinearGradient(0,0,0,500);
+		my_gradient.addColorStop(0,"#783F53");
+		my_gradient.addColorStop(1,"black");
+		ctx.fillStyle=my_gradient;
+		ctx.fillRect(0, 0, 1000, 750);
+		
+		//Adds text on top
+		ctx.fillStyle="#F7F8EE";
+		ctx.font = "120px Georgia";
+		ctx.fillText("KINGDOM", 200, 200);
+		ctx.fillText("DEFENSE", 215, 300);
+		
+		ctx.font = "40px Georgia";
+		ctx.fillText("Waiting for opponent...", 300, 600);
+		allowPlay = false;
+	});
 	
-	socket.on('newPosition', function(minionData, turretData, bulletData, id, health){
+	socket.on('countdown', function(currCount){
+		scoreboard.clearRect(100, 200, 500, 500);
+		scoreboard.font = "30px Georgia";
+		scoreboard.fillText("Opponent found!", 100, 230);
+		scoreboard.fillText("Beginning in:", 150, 260);
+		
+		scoreboard.font = "80px Georgia";
+		scoreboard.fillText(currCount, 200, 330);
+		scoreboard.font = "20px Georgia";
+		if(currCount == 0) {
+			scoreboard.clearRect(0, 200, 500, 500);
+		}
+		
+		if(currCount > 0) {
+			allowPlay = false;
+		}
+		else {
+			allowPlay = true;
+		}
+	});
+
+	socket.on('newPosition', function(minionData, superMinionData,turretData, bulletData, id, p1Health, p2Health, gold){
 		ctx.clearRect(0,0,1000,750);
-		scoreboard.clearRect(1200,0,200,200);
-		scoreboard.fillText("Player " + id, 0,100);
-		//scoreboard.fillText("Health " + health, 0,200);
+		scoreboard.clearRect(0,0,400,200);
+		scoreboard.fillText("You are Player " + id, 120,100);
+		scoreboard.fillText("Player 1 health: " + p1Health + "    Player 2 health : " + p2Health, 20,150);
+		scoreboard.fillText("Your gold: " + gold, 20,180);
 		ctx.drawImage(backgroundImage, 0, 0, 1000, 750);
+		
 		for (var i = 0; i < minionData.length; i++){
 			ctx.drawImage(minionImage, minionData[i].x, minionData[i].y, 30, 30);
+		}
+		for (var i = 0; i < superMinionData.length; i++){
+			ctx.drawImage(superMinionImage, superMinionData[i].x, superMinionData[i].y, 30, 30);
 		}
 		for (var j = 0; j < turretData.length; j++){
 			ctx.drawImage(turretImage, turretData[j].x, turretData[j].y, 40, 40);
@@ -34,19 +182,156 @@
 		for (var k = 0; k < bulletData.length; k++){
 			ctx.drawImage(bulletImage, bulletData[k].x, bulletData[k].y, 10, 10);
 		}
-		/*
-		for (var n = 0; n < health.length; n++){
-			scoreboard.fillText("Health " + health[n], 0,200);
-		}*/
 	});
 	
 	socket.on('game over', function(i){
+	
 		ctx.clearRect(0,0,1000,750);
 		ctx.drawImage(backgroundImage, 0, 0, 1000, 750);
 		alert("Player " + i + " wins!!");
-	});	
-</script>
+	});
+	
+	function startTimer() { 
+	  if(allowPlay) {
+		  var element = document.getElementById("myprogressBar");    
+		  var width = 0; 
+		  var identity = setInterval(scene, 100);
+				function scene() { 
+					if (width >= 100) {
+						socket.emit('chargeBar'); 
+						//startTimer();
+						clearInterval(identity); 
+						document.getElementById("chargeButton").disabled = false;
+					} else { 
+						width++;  
+						element.style.width = width + '%'; 
+						document.getElementById("chargeButton").disabled=true;						
+					} 
+				} 
+		}
+	}
+	
+	function turretDeployment(){
+	
+		ctx.drawImage(turretImage,500,375);
+		
+		interact('.draggable')
+		  .draggable({
+			// enable inertial throwing
+			inertia: false,
+			// keep the element within the area of it's parent
+			restrict: {
+			  restriction: "parent",
+			  endOnly: true,
+			  elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
+			},
+			  // enable autoScroll
+			autoScroll: false,
 
-<button type="button" onclick="socket.emit('createMinion')">Send Mob</button>
-<button type="button" onclick="socket.emit('createTurret')">Create Turret</button>
-<button type="button" onclick="socket.emit('deleteTurret')">Sell Turrets</button>
+			// call this function on every dragmove event
+			onmove: dragMoveListener,
+			
+			// call this function on every dragend event
+			onend: function (event) {
+			  var textEl = event.target.querySelector('p');
+
+			  textEl && (textEl.textContent =
+				'moved a distance of '
+				+ (Math.sqrt(Math.pow(event.pageX - event.x0, 2) +
+							 Math.pow(event.pageY - event.y0, 2) | 0))
+					.toFixed(2) + 'px');
+			}
+			});
+
+	
+		interact('.dropzone').dropzone({
+			// only accept elements matching this CSS selector
+			accept: '#yes-drop',
+			// Require a 75% element overlap for a drop to be possible
+			overlap: 0,
+
+			// listen for drop related events:
+
+			ondropactivate: function (event) {
+				// add active dropzone feedback
+				event.target.classList.add('drop-active');
+			},
+			
+			ondragenter: function (event) {
+				var draggableElement = event.relatedTarget,
+				dropzoneElement = event.target;
+
+				// feedback the possibility of a drop
+				dropzoneElement.classList.add('drop-target');
+				draggableElement.classList.add('can-drop');
+				draggableElement.textContent = 'Dragged in';
+			  },
+			  
+			ondragleave: function (event) {
+				// remove the drop feedback style
+				event.target.classList.remove('drop-target');
+				event.relatedTarget.classList.remove('can-drop');
+				event.relatedTarget.textContent = 'Dragged out';
+			  },
+			  
+			ondrop: function (event) {
+				event.relatedTarget.textContent = 'Dropped';
+			  },
+			  
+			ondropdeactivate: function (event) {
+				// remove active dropzone feedback
+				event.target.classList.remove('drop-active');
+				event.target.classList.remove('drop-target');
+			  }
+		});
+
+		interact('.drag-drop')
+		  .draggable({
+				inertia: false,
+				restrict: {
+				  restriction: "parent",
+				  endOnly: true,
+				  elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
+				},
+				autoScroll: false,
+				
+				// dragMoveListener from the dragging demo above
+				onmove: dragMoveListener,
+			});
+			
+		function dragMoveListener (event) {
+			var target = event.target,
+			// keep the dragged position in the data-x/data-y attributes
+			x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
+			y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+			// translate the element
+			target.style.webkitTransform = target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+
+			// update the posiion attributes
+			target.setAttribute('data-x', x);
+			target.setAttribute('data-y', y);
+		}
+		
+				
+				
+		
+		
+		
+		
+		
+		//socket.emit('createTurret',3,2);
+				
+	}
+
+
+</script>
+<div id="Progress_Status"> 
+	<div id="myprogressBar"></div> 
+  </div>
+  <br> 
+<button class="button" id="chargeButton" style="left:775px; top:765px" onclick="startTimer()">Build Super Minion</button>
+<button class="button" onclick="socket.emit('createMinion')">Send Mob</button>
+<button class="button" style="top:200px" onclick="socket.emit('createTurret')">Create Turret</button>
+<button class="button" style="top:300px" onclick="socket.emit('deleteTurret')">Sell Turrets</button>
+	

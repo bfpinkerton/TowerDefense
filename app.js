@@ -13,24 +13,31 @@ console.log("----------server started----------");
 
 var SOCKET_LIST = {};
 var PLAYER_LIST = {};
+var DISCONNECT_LIST = [];
+
 var MINION_LIST1 = {};
 var MINION_LIST2 = {};
+
+var SUPER_MINION_LIST1 = {};
+var SUPER_MINION_LIST2 = {};
+
 var TURRET_LIST1 = {};
 var TURRET_LIST2 = {};
+
 var BULLET_LIST = {};
+
 var numberOfPlayers = 0;
 var gameOver = 0;		// 0 = false, 1 = true, 2 = game over message has been sent
 var winner = 0;
-var gold = 0;
 var frameRate = 25;
+var turretButtonPressed = false;
 
 var Player = function(id){
 	var self = {
 		id : id, 
 		number : "" + Math.floor(10 * Math.random()),
-		health : 10,
-		gold: 1000
-		
+		health : 100,
+		gold : 100
 	}
 	
 	self.updates = function(){
@@ -40,36 +47,52 @@ var Player = function(id){
 		minionID = Math.random();
 		var minion = Minion1(minionID);
 		MINION_LIST1[minionID] = minion;
+		self.gold -= 5;
 	}
 	
 	self.createMinion2 = function(){
 		minionID = Math.random();
 		var minion = Minion2(minionID);
 		MINION_LIST2[minionID] = minion;
+		self.gold -= 5;
+	}
+
+	self.createSuperMinion1 = function(){
+		minionID = Math.random();
+		var superMinion = SuperMinion1(minionID);
+		SUPER_MINION_LIST1[minionID] = superMinion;
+	}
+	
+	self.createSuperMinion2 = function(){
+		minionID = Math.random();
+		var superMinion = SuperMinion2(minionID);
+		SUPER_MINION_LIST2[minionID] = superMinion;
 	}
 	
 	self.createTurret1 = function(){
 		turretID = Math.random();
 		var turret = Turret1(turretID);
 		TURRET_LIST1[turretID] = turret;
+		self.gold -= 20;
 	}
 	
 	self.createTurret2 = function(){
 		turretID = Math.random();
 		var turret = Turret2(turretID);
 		TURRET_LIST2[turretID] = turret;
+		self.gold -= 20;
 	}
 	
-	self.getGold = function(){
-		return self.gold;
-	}
-
 	self.getHealth = function(){
 		return self.health;
 	}
 	
-	self.updateHealth = function(){
+	self.updateHealthMinion = function(){
 		self.health--;
+	}
+
+	self.updateHealthSuperMinion = function(){
+		self.health -= 5;
 	}
 	
 	self.deleteTurret1 = function(){
@@ -178,14 +201,108 @@ var Minion2 = function(id){
 	return self;
 }
 
-var Turret1 = function(id) {
+var SuperMinion1 = function(id){
 	var self = {
 		x : 0,
 		y : 400,
 		id : id,
-		image : "T"
+		maxSpeed : 5,
+		determineMove: 0,
+		width : 5,
+		height : 5,
+		health : 50
 	}
 	
+	self.updatePosition = function(){
+		if (self.y == 400 && self.x < 150)
+		{
+			self.x += self.maxSpeed;
+		}
+		else if (self.x == 150 && self.y > 170)
+		{
+			self.y -= self.maxSpeed;			
+		}
+		
+		else if (self.y == 170 && self.x < 350)
+		{
+			self.x += self.maxSpeed;
+		}
+		else if (self.x == 350 && self.y < 470)
+		{
+			self.y += self.maxSpeed;
+		}
+		else if (self.y == 470 && self.x < 620)
+		{
+			self.x += self.maxSpeed;
+		}
+		else if (self.x == 620 && self.y > 320)
+		{
+			self.y -= self.maxSpeed;
+		}
+		else if (self.y == 320 && self.x < 1010)
+		{
+			self.x += self.maxSpeed;
+		}
+	}
+	return self;
+}
+
+var SuperMinion2 = function(id){
+	var self = {
+		x : 980,
+		y : 320,
+		id : id,
+		maxSpeed : 5,
+		determineMove: 0,
+		width : 5,
+		height : 5,
+		health : 50
+	}
+	
+	self.updatePosition = function(){
+		if (self.y == 320 && self.x > 620)
+		{
+			self.x -= self.maxSpeed;
+		}
+		else if (self.x == 620 && self.y < 470)
+		{
+			self.y += self.maxSpeed;
+		}
+		else if (self.y == 470 && self.x > 350)
+		{
+			self.x -= self.maxSpeed;
+		}
+		else if (self.x == 350 && self.y > 170)
+		{
+			self.y -= self.maxSpeed;
+		}
+		else if (self.y == 170 && self.x > 150)
+		{
+			self.x -= self.maxSpeed;
+		}
+		else if (self.x == 150 && self.y < 400)
+		{
+			self.y += self.maxSpeed;
+		}
+		else if (self.y == 400 && self.x > -10)
+		{
+			self.x -= self.maxSpeed;
+		}
+	}
+	return self;
+}
+
+var Turret1 = function(id) {
+	var self = {
+		x : Math.random() * (500 - 0) + 0,
+		//x : self.getX();
+		y : Math.random() * (750 - 0) + 0,
+		id : id,
+		image : "T",
+		locationConfirmed : false
+	}
+
+
 	self.checkMinionDistance = function() {
 		var distanceFromX = 0;
 		var distanceFromY = 0;
@@ -199,10 +316,25 @@ var Turret1 = function(id) {
 				for (j in BULLET_LIST){
 					numberOfBullets++;
 				}
-				if (numberOfBullets < 1){
+				if (numberOfBullets < 10){
 					//console.log(pathag);
 					//console.log("shoot bullet");
 					self.ShootBullet(MINION_LIST2[i]);
+				}
+			}
+		}
+		for (i in SUPER_MINION_LIST2){
+			distanceFromX = Math.abs(SUPER_MINION_LIST2[i].x - self.x);
+			distanceFromY = Math.abs(SUPER_MINION_LIST2[i].y - self.y);
+			pathag = Math.pow((Math.pow(distanceFromX, 2) + Math.pow(distanceFromY,2)), .5);
+			if (pathag <= 200){
+				for (j in BULLET_LIST){
+					numberOfBullets++;
+				}
+				if (numberOfBullets < 10){
+					//console.log(pathag);
+					//console.log("shoot bullet");
+					self.ShootBullet(SUPER_MINION_LIST2[i]);
 				}
 			}
 		}
@@ -218,8 +350,8 @@ var Turret1 = function(id) {
 
 var Turret2 = function(id) {
 	var self = {
-		x : 980,
-		y : 320,
+		x : Math.random() * (1000 - 500) + 500,
+		y : Math.random() * (750 - 0) + 0, 
 		id : id,
 		image : "T"
 	}
@@ -237,10 +369,25 @@ var Turret2 = function(id) {
 				for (j in BULLET_LIST){
 					numberOfBullets++;
 				}
-				if (numberOfBullets < 5){
+				if (numberOfBullets < 10){
 					//console.log(pathag);
 					//console.log("shoot bullet");
 					self.ShootBullet(MINION_LIST1[i]);
+				}
+			}
+		}
+		for (i in SUPER_MINION_LIST1){
+			distanceFromX = Math.abs(SUPER_MINION_LIST1[i].x - self.x);
+			distanceFromY = Math.abs(SUPER_MINION_LIST1[i].y - self.y);
+			pathag = Math.pow((Math.pow(distanceFromX, 2) + Math.pow(distanceFromY,2)), .5);
+			if (pathag <= 200){
+				for (j in BULLET_LIST){
+					numberOfBullets++;
+				}
+				if (numberOfBullets < 10){
+					//console.log(pathag);
+					//console.log("shoot bullet");
+					self.ShootBullet(SUPER_MINION_LIST1[i]);
 				}
 			}
 		}
@@ -320,64 +467,128 @@ var Bullet = function(id, fromX, fromY, enemy) {
 }
 
 var io = require('socket.io')(server,{});
+var allowPlay = false;
 
 io.sockets.on('connection', function(socket){
-	numberOfPlayers++;
-	socket.id = numberOfPlayers;
-	SOCKET_LIST[socket.id] = socket;
-	var player = Player(socket.id);
-	PLAYER_LIST[socket.id] = player;
-	
+	if (DISCONNECT_LIST === undefined || DISCONNECT_LIST.length == 0){
+		numberOfPlayers++;
+		socket.id = numberOfPlayers;
+		SOCKET_LIST[socket.id] = socket;
+		var player = Player(socket.id);
+		PLAYER_LIST[socket.id] = player;
+	}
+	else if (DISCONNECT_LIST.length > 0){
+		socket.id = DISCONNECT_LIST[DISCONNECT_LIST.length-1];
+		SOCKET_LIST[socket.id] = socket;
+		//var player = Player(socket.id);
+		//PLAYER_LIST[socket.id] = player;
+		var player = PLAYER_LIST[socket.id];
+	}
 	console.log('socket connection from ' + socket.id);
+	console.log(JSON.stringify(PLAYER_LIST.id));
+		socket.on('chargeBar',function(){
+			if(player.id == 1 && player.gold >= 50){
+				player.createSuperMinion1();
+			}
+			else if (player.id == 2 && player.gold >= 50){
+				player.createSuperMinion2();
+				console.log("super minion 2 call to player 2 class");
+			}
+		});
 	
-	socket.on('disconnect', function(){
-		delete SOCKET_LIST[socket.id];
-		delete PLAYER_LIST[socket.id];
-		numberOfPlayers--;
-		console.log('socket disconnected from ' + socket.id);
-	});
+		socket.on('disconnect', function(){
+			//delete SOCKET_LIST[socket.id];
+			//delete PLAYER_LIST[socket.id];
+			//numberOfPlayers--;
+			DISCONNECT_LIST.push(socket.id);
+			console.log('socket disconnected from ' + socket.id);
+		});
 	
-	socket.on('createMinion', function(){
-		if (player.id == 1&&player.gold>100){
-			player.createMinion1();
-		}
-		else if (player.id == 2&&player.gold>100){
-			player.createMinion2();
-		}
-	});
+		socket.on('createMinion', function(){
+			if(allowPlay) {
+				if (player.id == 1 && player.gold >= 5){
+					player.createMinion1();
+				}
+				else if (player.id == 2 && player.gold >= 5){
+					player.createMinion2();
+				}
+			}
+		});
 	
-	socket.on('createTurret', function(){
-		if (player.id == 1){
-			player.createTurret1();
-		}
-		else if (player.id == 2){
-			player.createTurret2();
-		}
-	});
+		socket.on('createTurret', function(){
+			if (allowPlay) {
+				if (player.id == 1){
+					var numberOfTurret1 = 0;
+					for (var i in TURRET_LIST1){
+						numberOfTurret1++;
+					}
+					if (player.gold >= 20){
+						player.createTurret1();
+					}
+				}
+				else if (player.id == 2){
+					var numberOfTurret2 = 0;
+					for (var i in TURRET_LIST2){
+						numberOfTurret2++;
+					}
+					if (player.gold >= 10){
+						player.createTurret2();
+					}
+				}
+			}
+		});
 	
-	socket.on('deleteTurret', function(){
-		if (player.id == 1){
-			player.deleteTurret1();
-		}
-		else if (player.id == 2){
-			player.deleteTurret2();
-		}	
-	});
+		socket.on('deleteTurret', function(){
+			if(allowPlay) {
+				if (player.id == 1){
+					player.deleteTurret1();
+				}
+				else if (player.id == 2){
+					player.deleteTurret2();
+				}
+			}				
+		});
 });
+
+var countDown = 25*10;	//FPS * 10 seconds
 
 setInterval(function() {
 	var packMinions = [];
+	var packSuperMinions = [];
 	var packTurrets = [];
 	var packBullets = [];
 	var packHealth = [];
-	
-	if (gameOver == 0){
+	var packGold = [];
+
+	if (numberOfPlayers < 2){
+		for (var i in SOCKET_LIST){
+			var socket = SOCKET_LIST[i];
+			socket.emit('waiting on player');
+			allowPlay = false;
+		}
+	}
+
+	else {
+		//Does countdown
+		if(countDown >= 0) {
+			for(var i in SOCKET_LIST){
+				var socket = SOCKET_LIST[i];
+				socket.emit('countdown', Math.ceil(countDown/25));
+			}
+			
+			countDown--;
+		}
+		else {
+			allowPlay = true;
+		}
+		
+		if (gameOver == 0){
 		for (var i in PLAYER_LIST) {
 			var player = PLAYER_LIST[i];
 			player.updates();
 			//console.log(player.getHealth());
 			if (player.getHealth() <= 0){
-				console.log("Player " + i + " is out of lives");
+				//console.log("Player " + i + " is out of lives");
 				gameOver = 1;
 				if (i == 1){
 					winner = 2;
@@ -391,14 +602,15 @@ setInterval(function() {
 		for (var i in MINION_LIST1) {
 			var minion = MINION_LIST1[i];
 			if (minion.x >= 1000 || minion.y >= 750){
-				PLAYER_LIST[1].updateHealth();
+				PLAYER_LIST[2].updateHealthMinion();
 				//console.log("Player 1's health is: " + PLAYER_LIST[1]["self"]["health"]);
 				delete MINION_LIST1[i];
 				continue;
 			}
 			if (minion.health == 0){
 				delete MINION_LIST1[i];
-				console.log("minion destroyed");
+				PLAYER_LIST[2].gold += 7;
+				//console.log("minion destroyed");
 			}
 			minion.updatePosition();
 			packMinions.push({x : minion.x, y: minion.y, id : minion.id, image : minion.image});
@@ -407,16 +619,50 @@ setInterval(function() {
 		for (var i in MINION_LIST2) {
 			var minion = MINION_LIST2[i];
 			if (minion.x <= 0 || minion.y >= 740){
-				PLAYER_LIST[2].updateHealth();
+				PLAYER_LIST[1].updateHealthMinion();
 				delete MINION_LIST2[i];
 				continue;
 			}
 			if (minion.health == 0){
 				delete MINION_LIST2[i];
-				console.log("minion destroyed");
+				PLAYER_LIST[1].gold += 7;
+				//console.log("minion destroyed");
 			}
 			minion.updatePosition();
 			packMinions.push({x : minion.x, y: minion.y, id : minion.id, image : minion.image});
+		}
+
+		for (var i in SUPER_MINION_LIST1) {
+			var minion = SUPER_MINION_LIST1[i];
+			if (minion.x >= 1000 || minion.y >= 750){
+				PLAYER_LIST[2].updateHealthSuperMinion();
+				//console.log("Player 1's health is: " + PLAYER_LIST[1]["self"]["health"]);
+				delete SUPER_MINION_LIST1[i];
+				continue;
+			}
+			if (minion.health == 0){
+				delete SUPER_MINION_LIST1[i];
+				PLAYER_LIST[2].gold += 75;
+				//console.log("super minion destroyed");
+			}
+			minion.updatePosition();
+			packSuperMinions.push({x : minion.x, y: minion.y, id : minion.id, image : minion.image});
+		}
+		
+		for (var i in SUPER_MINION_LIST2) {
+			var minion = SUPER_MINION_LIST2[i];
+			if (minion.x <= 0 || minion.y >= 740){
+				PLAYER_LIST[1].updateHealthSuperMinion();
+				delete SUPER_MINION_LIST2[i];
+				continue;
+			}
+			if (minion.health == 0){
+				delete SUPER_MINION_LIST2[i];
+				PLAYER_LIST[2].gold += 75;
+				console.log("super minion destroyed");
+			}
+			minion.updatePosition();
+			packSuperMinions.push({x : minion.x, y: minion.y, id : minion.id, image : minion.image});
 		}
 		
 		for (var i in TURRET_LIST1) {
@@ -440,22 +686,28 @@ setInterval(function() {
 			}
 			bullet.updatePosition();
 			if (bullet.checkCollision() == true){
-				console.log("collision detected");
+				//console.log("collision detected");
 				delete BULLET_LIST[i];
+				
 			}
 			packBullets.push({x : bullet.currentX, y : bullet.currentY, id : bullet.id, image : bullet.image});
 		}
 		
 		for (var i in SOCKET_LIST) {
 			var socket = SOCKET_LIST[i];
-			var health = 0;
-			for (var j in PLAYER_LIST){
-				if (PLAYER_LIST[j].id == socket.id){
-					health = PLAYER_LIST[j].health;
-					//packHealth.push(health);
-				}
+			var gold = PLAYER_LIST[i].gold;
+			if (typeof PLAYER_LIST[1] == "undefined" && typeof PLAYER_LIST[2] == "undefined"){
+				socket.emit('newPosition', packMinions, packSuperMinions, packTurrets, packBullets, socket.id, 100, 100);
 			}
-			socket.emit('newPosition', packMinions, packTurrets, packBullets, socket.id, health);
+			else if (typeof PLAYER_LIST[2] == "undefined" && typeof PLAYER_LIST[1] != "undefined"){
+				socket.emit('newPosition', packMinions, packSuperMinions, packTurrets, packBullets, socket.id, PLAYER_LIST[1].health, 100, gold);
+			}
+			else if (typeof PLAYER_LIST[1] == "undefined" && typeof PLAYER_LIST[2] != "undefined"){
+				socket.emit('newPosition', packMinions, packSuperMinions, packTurrets, packBullets, socket.id, 100, PLAYER_LIST[2].health, gold);
+			}
+			else {
+				socket.emit('newPosition', packMinions, packSuperMinions, packTurrets, packBullets, socket.id, PLAYER_LIST[1].health, PLAYER_LIST[2].health, gold);
+			}
 		}
 	}
 	else if (gameOver == 1) {
@@ -474,5 +726,8 @@ setInterval(function() {
 		delete PLAYER_LIST;
 		//numberOfPlayers = 0;
 	}
+
+	}
 	
+		
 }, 1000/25);
