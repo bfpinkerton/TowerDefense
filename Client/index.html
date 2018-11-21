@@ -5,6 +5,7 @@
 <script src ="http://cdn.socket.io/socket.io-1.4.5.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/interactjs@1.3.4/dist/interact.min.js"></script>
 <link rel="stylesheet" href="towerdefense.css" type="text/css"/>
+<audio id="myAudio" src="AquaticRace.mp3"></audio>
 <style>
 	body {
 		background-color: #b3ecff;
@@ -96,7 +97,13 @@
 	  background-color: #4e4;
 	}
 	</style>
-
+<div style="position:relative;width:267px;height:25px;overflow:hidden;">
+<div style="position:absolute;top:-276px;left:-5px">
+	<iframe width="0" height="0" 
+  src="https://www.youtube.com/embed/ZwXlxajcBL8?rel=0&autoplay=1" allow="autoplay">
+</iframe>
+</div>
+</div>
 <script>
 	var ctx = document.getElementById("ctx").getContext("2d");
 	var scoreboard = document.getElementById("scoreboard").getContext("2d");
@@ -107,7 +114,7 @@
 	var bulletImage = new Image();
 	var turretImage = new Image();
 	var allowPlay = false;
-	
+	document.getElementById('myAudio').play();
 	minionImage.src = 'https://i.imgur.com/Np3rsoZ.png';
 	superMinionImage.src = 'https://i.imgur.com/G64t1iJ.png';
 	backgroundImage.src = 'https://i.stack.imgur.com/BFjwi.png';
