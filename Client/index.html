@@ -1,11 +1,12 @@
 <title> Kingdom Defense </title>
-
-<canvas id="ctx" ondrop="drop(event)" ondragover="allowDrop(event)" width="1000" height="750" style="border:1px solid #000000;"></canvas>
+<!--<canvas id="ctx" ondrop="drop(event)" ondragover="allowDrop(event)" width="1000" height="750" style="border:1px solid #000000;"></canvas>-->
+<canvas id="graphCanvas" height="750" width="1000" style="border:1px solid #000000;"></canvas>
+<img id="myImg" src="https://imgur.com/d5X6aed.jpg" width="107" height="98" draggable = "true"/>
+<img id="myImg2" src="https://i.imgur.com/idomsvQ.jpg" width="107" height="98" draggable = "true"/>
 <canvas id="scoreboard" width="450" height="350" style="border:0px solid #000000;"></canvas>
 <script src ="http://cdn.socket.io/socket.io-1.4.5.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/interactjs@1.3.4/dist/interact.min.js"></script>
 <link rel="stylesheet" href="towerdefense.css" type="text/css"/>
-<audio id="myAudio" src="AquaticRace.mp3"></audio>
 <style>
 	body {
 		background-color: #b3ecff;
@@ -105,21 +106,41 @@
 </div>
 </div>
 <script>
-	var ctx = document.getElementById("ctx").getContext("2d");
+	//var ctx = document.getElementById("ctx").getContext("2d");
+	var canvas = document.getElementById("graphCanvas");
+	var ctx = canvas.getContext("2d");
+	var canvasLeft = canvas.offsetLeft;
+	var canvasTop = canvas.offsetTop;
+	canvas.ondrop = drop;
+	canvas.ondragover = allowDrop;
 	var scoreboard = document.getElementById("scoreboard").getContext("2d");
 	var socket = io();
 	var minionImage = new Image();
+	var soldier1Image = new Image();
+	var soldier2Image = new Image();
 	var superMinionImage = new Image();
 	var backgroundImage = new Image();
 	var bulletImage = new Image();
-	var turretImage = new Image();
+	var superBulletImage = new Image();
+	//var turretImage = new Image();
+	//var turretImage = document.getElementById("myImg");
+	var turretImage = document.getElementById("myImg");
+	var superTurretImage = document.getElementById("myImg2");
+	turretImage.onmousedown = mousedown;
+	turretImage.ondragstart = dragstart;
+	superTurretImage.onmousedown = mousedown;
+	superTurretImage.ondragstart = dragstart;
 	var allowPlay = false;
-	document.getElementById('myAudio').play();
+	
 	minionImage.src = 'https://i.imgur.com/Np3rsoZ.png';
+	soldier1Image.src = 'https://i.imgur.com/HtE4fhb.png';
+	soldier2Image.src = 'https://i.imgur.com/KbnZwZ5.png?';
 	superMinionImage.src = 'https://i.imgur.com/G64t1iJ.png';
 	backgroundImage.src = 'https://i.stack.imgur.com/BFjwi.png';
 	bulletImage.src = 'https://i.imgur.com/zbSMMDc.png';
+	superBulletImage.src = 'https://i.imgur.com/k48b7DU.jpg';
 	turretImage.src = "https://imgur.com/d5X6aed.jpg";
+	superTurretImage.src = 'https://i.imgur.com/idomsvQ.jpg';
 	ctx.font = '30px Arial';
 	ctx.drawImage(backgroundImage, 0, 0, 1000, 750);
 	scoreboard.font = '20px Georgia';
@@ -166,10 +187,11 @@
 		}
 		else {
 			allowPlay = true;
+            startTimer();
 		}
 	});
 
-	socket.on('newPosition', function(minionData, superMinionData,turretData, bulletData, id, p1Health, p2Health, gold){
+	socket.on('newPosition', function(minionData, superMinionData, soldierData, turretData, superTurretData, bulletData, superBulletData, id, p1Health, p2Health, gold){
 		ctx.clearRect(0,0,1000,750);
 		scoreboard.clearRect(0,0,400,200);
 		scoreboard.fillText("You are Player " + id, 120,100);
@@ -180,14 +202,28 @@
 		for (var i = 0; i < minionData.length; i++){
 			ctx.drawImage(minionImage, minionData[i].x, minionData[i].y, 30, 30);
 		}
+		for (var i = 0; i < soldierData.length; i++){
+			if (soldierData[i].name === 'soldier1'){
+				ctx.drawImage(soldier1Image, soldierData[i].x, soldierData[i].y, 30, 30);
+			}
+			else {
+				ctx.drawImage(soldier2Image, soldierData[i].x, soldierData[i].y, 30, 30);
+			}			
+		}
 		for (var i = 0; i < superMinionData.length; i++){
 			ctx.drawImage(superMinionImage, superMinionData[i].x, superMinionData[i].y, 30, 30);
 		}
 		for (var j = 0; j < turretData.length; j++){
 			ctx.drawImage(turretImage, turretData[j].x, turretData[j].y, 40, 40);
 		}
+		for (var j = 0; j < superTurretData.length; j++){
+			ctx.drawImage(superTurretImage, superTurretData[j].x, superTurretData[j].y, 40, 40);
+		}
 		for (var k = 0; k < bulletData.length; k++){
 			ctx.drawImage(bulletImage, bulletData[k].x, bulletData[k].y, 10, 10);
+		}
+		for (var k = 0; k < superBulletData.length; k++){
+			ctx.drawImage(superBulletImage, superBulletData[k].x, superBulletData[k].y, 10, 10);
 		}
 	});
 	
@@ -205,7 +241,7 @@
 		  var identity = setInterval(scene, 100);
 				function scene() { 
 					if (width >= 100) {
-						socket.emit('chargeBar'); 
+						//socket.emit('createSoldier'); 
 						//startTimer();
 						clearInterval(identity); 
 						document.getElementById("chargeButton").disabled = false;
@@ -217,118 +253,68 @@
 				} 
 		}
 	}
-	
-	function turretDeployment(){
-	
-		ctx.drawImage(turretImage,500,375);
-		
-		interact('.draggable')
-		  .draggable({
-			// enable inertial throwing
-			inertia: false,
-			// keep the element within the area of it's parent
-			restrict: {
-			  restriction: "parent",
-			  endOnly: true,
-			  elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
-			},
-			  // enable autoScroll
-			autoScroll: false,
 
-			// call this function on every dragmove event
-			onmove: dragMoveListener,
-			
-			// call this function on every dragend event
-			onend: function (event) {
-			  var textEl = event.target.querySelector('p');
+	var startOffsetX, startOffsetY;
 
-			  textEl && (textEl.textContent =
-				'moved a distance of '
-				+ (Math.sqrt(Math.pow(event.pageX - event.x0, 2) +
-							 Math.pow(event.pageY - event.y0, 2) | 0))
-					.toFixed(2) + 'px');
-			}
-			});
+	function allowDrop(ev) {
+	    ev.preventDefault();
+	}
 
-	
-		interact('.dropzone').dropzone({
-			// only accept elements matching this CSS selector
-			accept: '#yes-drop',
-			// Require a 75% element overlap for a drop to be possible
-			overlap: 0,
+	function mousedown(ev) {
+	    startOffsetX = ev.offsetX;
+	    startOffsetY = ev.offsetY;
+	}
 
-			// listen for drop related events:
+	function dragstart(ev) {
+	    ev.dataTransfer.setData("Text", ev.target.id);
+	}
 
-			ondropactivate: function (event) {
-				// add active dropzone feedback
-				event.target.classList.add('drop-active');
-			},
-			
-			ondragenter: function (event) {
-				var draggableElement = event.relatedTarget,
-				dropzoneElement = event.target;
+	function drop(ev) {
+	    ev.preventDefault();
 
-				// feedback the possibility of a drop
-				dropzoneElement.classList.add('drop-target');
-				draggableElement.classList.add('can-drop');
-				draggableElement.textContent = 'Dragged in';
-			  },
-			  
-			ondragleave: function (event) {
-				// remove the drop feedback style
-				event.target.classList.remove('drop-target');
-				event.relatedTarget.classList.remove('can-drop');
-				event.relatedTarget.textContent = 'Dragged out';
-			  },
-			  
-			ondrop: function (event) {
-				event.relatedTarget.textContent = 'Dropped';
-			  },
-			  
-			ondropdeactivate: function (event) {
-				// remove active dropzone feedback
-				event.target.classList.remove('drop-active');
-				event.target.classList.remove('drop-target');
-			  }
-		});
+	    var dropX = ev.clientX - canvasLeft - startOffsetX;
+	    var dropY = ev.clientY - canvasTop - startOffsetY;
+	    var id = ev.dataTransfer.getData("Text");
+	    var dropElement = document.getElementById(id);
+		console.log(id);
 
-		interact('.drag-drop')
-		  .draggable({
-				inertia: false,
-				restrict: {
-				  restriction: "parent",
-				  endOnly: true,
-				  elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
-				},
-				autoScroll: false,
-				
-				// dragMoveListener from the dragging demo above
-				onmove: dragMoveListener,
-			});
-			
-		function dragMoveListener (event) {
-			var target = event.target,
-			// keep the dragged position in the data-x/data-y attributes
-			x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
-			y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-
-			// translate the element
-			target.style.webkitTransform = target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
-
-			// update the posiion attributes
-			target.setAttribute('data-x', x);
-			target.setAttribute('data-y', y);
+	    // draw the drag image at the drop coordinates
+	    //ctx.drawImage(dropElement, dropX, dropY);
+		if (id === 'myImg'){
+			socket.emit('createTurret', dropX, dropY);
 		}
-		
-				
-				
-		
-		
-		
-		
-		
-		//socket.emit('createTurret',3,2);
-				
+		else if (id === 'myImg2'){
+			socket.emit('createSuperTurret', dropX, dropY);
+		}
+	}
+	
+	
+	var startOffsetX2, startOffsetY2;
+
+	function allowDrop2(ev) {
+	    ev.preventDefault();
+	}
+
+	function mousedown2(ev) {
+	    startOffsetX2 = ev.offsetX;
+	    startOffsetY2 = ev.offsetY;
+	}
+
+	function dragstart2(ev) {
+	    ev.dataTransfer.setData("Text", ev.target.id);
+	}
+
+	function drop2(ev) {
+	    ev.preventDefault();
+
+	    var dropX = ev.clientX - canvasLeft - startOffsetX2;
+	    var dropY = ev.clientY - canvasTop - startOffsetY2;
+	    var id = ev.dataTransfer.getData("Text");
+	    var dropElement = document.getElementById(id);
+
+	    // draw the drag image at the drop coordinates
+	    //ctx.drawImage(dropElement, dropX, dropY);
+		socket.emit('createSuperTurret', dropX, dropY);
 	}
 
 
@@ -337,8 +323,11 @@
 	<div id="myprogressBar"></div> 
   </div>
   <br> 
-<button class="button" id="chargeButton" style="left:775px; top:765px" onclick="startTimer()">Build Super Minion</button>
-<button class="button" onclick="socket.emit('createMinion')">Send Mob</button>
-<button class="button" style="top:200px" onclick="socket.emit('createTurret')">Create Turret</button>
+<!--<button class="button" id="chargeButton" style="left:775px; top:765px" onclick="startTimer()">Build Super Minion</button>-->
+<button class="button" id="chargeButton" style="left:775px; top:765px" onclick="startTimer();socket.emit('createSoldier')">Build Tank</button>
+<button class="button" onclick="socket.emit('createMinion')">Send Goblin</button>
 <button class="button" style="top:300px" onclick="socket.emit('deleteTurret')">Sell Turrets</button>
+<button class="button" style="top:200px" onclick="socket.emit('createSuperMinion')">Send Snorlax</button>
+
+<!--<button class="button" style="top:200px" onclick="turretDeployment()">Create Turret</button>-->
 	
