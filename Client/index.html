@@ -1,15 +1,37 @@
 <title> Kingdom Defense </title>
+
+<div class="w3-top">
+  <div class="w3-bar w3-black w3-card">
+    <!--a class="w3-bar-item w3-button w3-padding-large w3-hide-medium w3-hide-large w3-right" href="javascript:void(0)" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars"></i></a-->
+    <!--a class="w3-bar-item home w3-padding-large">Space Wars</a-->
+	    <a href="http://23.99.249.72:2000/" class="w3-bar-item w3-button w3-padding-large w3-hide-small">Home</a>
+    <a href="http://23.99.249.72:2000/records" class="w3-bar-item w3-button w3-padding-large w3-hide-small">Records</a>
+	<a href="http://23.99.249.72:2000/instructions" class="w3-bar-item w3-button w3-padding-large w3-hide-small">Instructions</a>	
+	<a href="http://23.99.249.72:2000/play" class="w3-bar-item w3-button w3-padding-large w3-hide-small">Game</a>
+
+	<!--a href="javascript:void(0)" onclick = "InformationPackaging()" class="w3-padding-large w3-hover-red w3-hide-small forceright w3-right"><i class="fa fa-search"></i></a>-->
+	<!--input type="text" id="shipname" placeholder="Enter Player Name" name="playername"-->
+</div>
+</div>
+
+<br><br><br>
 <!--<canvas id="ctx" ondrop="drop(event)" ondragover="allowDrop(event)" width="1000" height="750" style="border:1px solid #000000;"></canvas>-->
 <canvas id="graphCanvas" height="750" width="1000" style="border:1px solid #000000;"></canvas>
-<img id="myImg" src="https://imgur.com/d5X6aed.jpg" width="107" height="98" draggable = "true"/>
-<img id="myImg2" src="https://i.imgur.com/idomsvQ.jpg" width="107" height="98" draggable = "true"/>
-<canvas id="scoreboard" width="450" height="350" style="border:0px solid #000000;"></canvas>
+<br>
+<img id="myImg" src="https://i.imgur.com/d5X6aed.png?1" width="107" height="98" style="left:1100px; top:400px; position:absolute;" draggable = "true"/>
+<img id="myImg2" src="https://imgur.com/mlhF5vF.png" width="107" height="98" style="left:1100px; top:500px; position:absolute;" draggable = "true"/>
+<canvas id="scoreboard" width="450" height="350" style="border:0px solid #000000; left:1200px; top:600px; position:absolute;"></canvas>
 <script src ="http://cdn.socket.io/socket.io-1.4.5.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/interactjs@1.3.4/dist/interact.min.js"></script>
 <link rel="stylesheet" href="towerdefense.css" type="text/css"/>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <style>
+		
 	body {
 		background-color: #b3ecff;
+		font-family: "Lato", sans-serif;
 	}
 
 	.button {
@@ -46,9 +68,9 @@
 	#myprogressBar { 
 	  width: 2%; 
 	  height: 20px; 
-	  background-color: #4CAF50; 
-	} 
-	
+	  background-color: rgb(204, 207, 33); 
+	}
+
 	#outer-dropzone {
 		height: 140px;
 		touch-action: none;
@@ -97,6 +119,42 @@
 	  color: #000;
 	  background-color: #4e4;
 	}
+	
+	.mySlides {
+	display: none
+	}
+	.w3-top a.home:hover{
+		background: black;
+	}
+	img.logo {
+		display: block;
+		margin-left: auto;
+		margin-right: auto;
+		width: 50%;
+	}
+
+	img.game_window{
+		display: block;
+		margin-left: auto;
+		margin-right: auto;
+		width: 80%
+	}
+
+	.w3-bar{
+		color: #ffc6b3;
+	}
+	.w3-top input[type=text]{
+		float: right;
+		padding: 6px;
+		border: none;
+		margin-top: 5px;
+	   // margin-right: 16px;
+		font-size: 14px;
+	}
+
+	.forceright{
+		margin-right: 0px;
+	}
 	</style>
 <div style="position:relative;width:267px;height:25px;overflow:hidden;">
 <div style="position:absolute;top:-276px;left:-5px">
@@ -138,9 +196,9 @@
 	superMinionImage.src = 'https://i.imgur.com/G64t1iJ.png';
 	backgroundImage.src = 'https://i.stack.imgur.com/BFjwi.png';
 	bulletImage.src = 'https://i.imgur.com/zbSMMDc.png';
-	superBulletImage.src = 'https://i.imgur.com/k48b7DU.jpg';
-	turretImage.src = "https://imgur.com/d5X6aed.jpg";
-	superTurretImage.src = 'https://i.imgur.com/idomsvQ.jpg';
+	superBulletImage.src = 'https://i.imgur.com/GVK1Qdc.png';
+	turretImage.src = "https://i.imgur.com/d5X6aed.png?1";
+	superTurretImage.src = 'https://imgur.com/mlhF5vF.png';
 	ctx.font = '30px Arial';
 	ctx.drawImage(backgroundImage, 0, 0, 1000, 750);
 	scoreboard.font = '20px Georgia';
@@ -276,7 +334,6 @@
 	    var dropY = ev.clientY - canvasTop - startOffsetY;
 	    var id = ev.dataTransfer.getData("Text");
 	    var dropElement = document.getElementById(id);
-		console.log(id);
 
 	    // draw the drag image at the drop coordinates
 	    //ctx.drawImage(dropElement, dropX, dropY);
@@ -323,11 +380,10 @@
 	<div id="myprogressBar"></div> 
   </div>
   <br> 
-<!--<button class="button" id="chargeButton" style="left:775px; top:765px" onclick="startTimer()">Build Super Minion</button>-->
-<button class="button" id="chargeButton" style="left:775px; top:765px" onclick="startTimer();socket.emit('createSoldier')">Build Tank</button>
-<button class="button" onclick="socket.emit('createMinion')">Send Goblin</button>
+ <button class="button" id="chargeButton" style="left:950px; top:850px" onclick="startTimer();socket.emit('createSoldier')">Build Tank (35 gold)</button>
+<button class="button" onclick="socket.emit('createMinion')">Send Minion (5 gold)</button>
 <button class="button" style="top:300px" onclick="socket.emit('deleteTurret')">Sell Turrets</button>
-<button class="button" style="top:200px" onclick="socket.emit('createSuperMinion')">Send Snorlax</button>
+<button class="button" style="top:200px" onclick="socket.emit('createSuperMinion')">Send Super Minion (30 gold)</button>
 
 <!--<button class="button" style="top:200px" onclick="turretDeployment()">Create Turret</button>-->
 	

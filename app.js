@@ -3,7 +3,19 @@ var app = express();
 var server = require('http').Server(app);
 
 app.get('/', function(req,res){
+	res.sendFile(__dirname + '/Client/home.html');
+});
+
+app.get('/play', function(req,res){
 	res.sendFile(__dirname + '/Client/index.html');
+});
+
+app.get('/records', function(req,res){
+	res.sendFile(__dirname + '/Client/records.html');
+});
+
+app.get('/instructions', function(req,res){
+	res.sendFile(__dirname + '/Client/instructions.html');
 });
 
 app.use('/client', express.static(__dirname + '/client'));
@@ -850,13 +862,11 @@ var Bullet = function(id, fromX, fromY, enemy) {
 		 if (((Math.abs((self.currentX + self.width) - (self.enemy.x))) < 10)  || (Math.abs((self.currentX - self.width) - (self.enemy.x)) < 10)){
 			 self.collision = true;
 			 self.enemy.health--;
-			 console.log("collision detected");
 			 return self.collision;
 		 }
 		 else if (((Math.abs((self.currentY + self.height) - (self.enemy.Y))) < 10)  || (Math.abs((self.currentY - self.height) - (self.enemy.Y)) < 10)){
 			 self.collision = true;
 			 self.enemy.health--;
-			 console.log("collision detected");
 			 return self.collision;
 		 }
 		 /*
@@ -1252,14 +1262,12 @@ setInterval(function() {
 			var minion = SUPER_MINION_LIST1[i];
 			if (minion.x >= 1000 || minion.y >= 750){
 				PLAYER_LIST[2].updateHealthSuperMinion();
-				//console.log("Player 1's health is: " + PLAYER_LIST[1]["self"]["health"]);
 				delete SUPER_MINION_LIST1[i];
 				continue;
 			}
 			if (minion.health <= 0){
 				delete SUPER_MINION_LIST1[i];
 				PLAYER_LIST[2].gold += 75;
-				//console.log("super minion destroyed");
 			}
 			minion.updatePosition();
 			packSuperMinions.push({x : minion.x, y: minion.y, id : minion.id, image : minion.image});
@@ -1275,7 +1283,6 @@ setInterval(function() {
 			if (minion.health <= 0){
 				delete SUPER_MINION_LIST2[i];
 				PLAYER_LIST[2].gold += 75;
-				console.log("super minion destroyed");
 			}
 			minion.updatePosition();
 			packSuperMinions.push({x : minion.x, y: minion.y, id : minion.id, image : minion.image});

@@ -1,0 +1,105 @@
+<title> Kingdom Defense Instructions </title>
+
+<script src ="http://cdn.socket.io/socket.io-1.4.5.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/interactjs@1.3.4/dist/interact.min.js"></script>
+<link rel="stylesheet" href="towerdefense.css" type="text/css"/>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+
+<div class="w3-top">
+  <div class="w3-bar w3-black w3-card">
+    <!--a class="w3-bar-item w3-button w3-padding-large w3-hide-medium w3-hide-large w3-right" href="javascript:void(0)" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars"></i></a-->
+    <!--a class="w3-bar-item home w3-padding-large">Space Wars</a-->
+	    <a href="http://23.99.249.72:2000/" class="w3-bar-item w3-button w3-padding-large w3-hide-small">Home</a>
+    <a href="http://23.99.249.72:2000/records" class="w3-bar-item w3-button w3-padding-large w3-hide-small">Records</a>
+	<a href="http://23.99.249.72:2000/instructions" class="w3-bar-item w3-button w3-padding-large w3-hide-small">Instructions</a>
+	<a href="http://23.99.249.72:2000/play" class="w3-bar-item w3-button w3-padding-large w3-hide-small">Game</a>
+	<!--a href="javascript:void(0)" onclick = "InformationPackaging()" class="w3-padding-large w3-hover-red w3-hide-small forceright w3-right"><i class="fa fa-search"></i></a>
+	<!--input type="text" id="shipname" placeholder="Enter Player Name" name="playername"-->
+</div>
+</div>
+
+
+<style>
+ol{
+	display: table;
+	margin:0 auto;
+	
+}
+
+#nonbold{
+	font-weight: normal;
+}
+
+#bolded{
+	font-weight: bold;
+}
+
+table{
+	
+}
+
+</style>
+
+
+<div class = "list">
+	<h2> Instructions </h2>
+	
+	<ol>
+		<li id = "bolded">
+			How to Connect?
+			<ul>
+				<li id = "nonbold" > Player 1 must go  <a href = "http://23.99.249.72:2000"> here </a> </li>
+				<li id = "nonbold" > Player 2 must connect to the same site. Link is  <a href = "http://23.99.249.72:2000"> here </a> </li>
+			</ul>
+		</li>
+		<li id = "bolded">
+			How to play?
+			<ul id = "nonbold">
+				<li> Both players can move at the same time with no input lag </li>
+				<li> Players have the option of send different types of mobs or play turrets down on their individual side of the map </li>
+				<li> Every time a minion or turret is placed, gold is spent. Every time a player destroy a minion or turret they receive gold. </li>
+				<li> Each player has access to use a Tank Minion that can shoot at enemy turrets. However, this minion has a cooldown and cost a substantial amount of gold. </li>
+				<li> Below is a table with all of the values for deploying and destroying </li>
+			</ul>
+			<table align = "center">
+				<tbody>
+					<tr>
+						<td><strong>Item</strong>&nbsp;</td>
+						<td><strong>Cost</strong></td>
+						<td><strong>Reward</strong></td>
+					</tr>
+					<tr>
+						<td>Regular Minion</td>
+						<td>5</td>
+						<td>7</td>
+					</tr>
+					<tr>
+						<td>Tank</td>
+						<td>35</td>
+						<td>50</td>
+					</tr>
+					<tr>
+						<td>Super Minion</td>
+						<td>&nbsp;50</td>
+						<td>70</td>
+					</tr>
+					<tr>
+						<td>Turret</td>
+						<td>15</td>
+						<td>n/a</td>
+					</tr>
+				</tbody>
+				</table>
+
+		</li>
+		<li id = "bolded">
+			How to win?
+			<ul id = "nonbold">
+				<li> Player must get other player's health to 0 to win the game </li>
+			</ul>
+		</li>
+	</ol>
+</div>
